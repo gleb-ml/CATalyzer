@@ -186,6 +186,7 @@
   // ── Плавающая кнопка (FAB) ───────────────────────────────────────────────
   function createFab() {
     fab = document.createElement('div');
+    fab.id = 'catalyze-btn';
     fab.className = 'cz-fab';
     fab.title = 'CATalyze: объяснить';
 
