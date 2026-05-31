@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — CATalyze</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #faf8ff;
+      color: #1a1a2e;
+      line-height: 1.7;
+      padding: 48px 20px 80px;
+    }
+
+    .container {
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ── */
+
+    header {
+      text-align: center;
+      margin-bottom: 48px;
+      padding-bottom: 36px;
+      border-bottom: 1px solid #e2d9f3;
+    }
+
+    header img {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 14px;
+      border-radius: 14px;
+    }
+
+    .brand-name {
+      font-size: 28px;
+      font-weight: 700;
+      color: #6d28d9;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+
+    .brand-name span {
+      color: #ff6600;
+    }
+
+    .tagline {
+      font-size: 14px;
+      font-style: italic;
+      color: #9580c4;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 8px;
+    }
+
+    .last-updated {
+      font-size: 13px;
+      color: #9580c4;
+    }
+
+    /* ── Sections ── */
+
+    section {
+      margin-bottom: 36px;
+    }
+
+    h2 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #6d28d9;
+      margin-bottom: 12px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #ede9fe;
+    }
+
+    p {
+      font-size: 14px;
+      color: #3b3b5c;
+      margin-bottom: 12px;
+    }
+
+    p:last-child { margin-bottom: 0; }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    ul li {
+      font-size: 14px;
+      color: #3b3b5c;
+      padding: 6px 0 6px 20px;
+      position: relative;
+      border-bottom: 1px solid #f3eeff;
+    }
+
+    ul li:last-child { border-bottom: none; }
+
+    ul li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #ff6600;
+    }
+
+    code {
+      font-family: "SF Mono", "Fira Code", "Courier New", monospace;
+      font-size: 12px;
+      background: #ede9fe;
+      color: #6d28d9;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .permissions-list li {
+      padding: 10px 0 10px 20px;
+    }
+
+    .perm-label {
+      display: inline-block;
+      margin-right: 6px;
+    }
+
+    a {
+      color: #6d28d9;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .provider-list li {
+      padding: 10px 0 10px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .provider-list a {
+      font-size: 13px;
+      color: #9580c4;
+    }
+
+    /* ── Footer ── */
+
+    footer {
+      text-align: center;
+      margin-top: 56px;
+      padding-top: 24px;
+      border-top: 1px solid #e2d9f3;
+      font-size: 12px;
+      color: #b0a8cc;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <header>
+      <img src="icons/icon128.png" alt="CATalyze">
+      <div class="brand-name">CAT<span>a</span>lyze</div>
+      <div class="tagline">Catalyze any text into plain language</div>
+      <h1>Privacy Policy</h1>
+      <p class="last-updated">Last updated: May 30, 2025</p>
+    </header>
+
+    <section>
+      <p>
+        CATalyze is built with a privacy-first mindset. We believe your data belongs to you — not to us. This extension was designed from the ground up so that we never see, touch, or store anything about you or your usage.
+      </p>
+    </section>
+
+    <section>
+      <h2>Data We Don't Collect</h2>
+      <ul>
+        <li>Personal information of any kind</li>
+        <li>Browsing history or visited URLs</li>
+        <li>Account data or identifiers</li>
+        <li>Analytics or telemetry</li>
+        <li>Cookies or tracking pixels</li>
+        <li>User behavior, clicks, or interaction patterns</li>
+        <li>The text you highlight or send to AI providers</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>How CATalyze Works</h2>
+      <p>
+        CATalyze runs entirely inside your browser. There are no CATalyze servers — the extension has no backend, no database, and no cloud infrastructure of its own.
+      </p>
+      <p>
+        Your API key is stored exclusively in <code>chrome.storage.local</code> on your device. It never leaves your machine except when sent directly to your chosen AI provider to authenticate a request.
+      </p>
+      <p>
+        When you highlight text and activate the extension, that text is sent directly from your browser to the AI provider you selected (Groq, OpenAI, OpenRouter, or a custom URL) via their official API. CATalyze acts only as a bridge — it does not intercept, log, or store this communication.
+      </p>
+      <p>
+        How that provider handles your request is governed by their own privacy policy, not ours.
+      </p>
+    </section>
+
+    <section>
+      <h2>Third-Party Services</h2>
+      <p>
+        Depending on which provider you configure, your text may be processed by one of the following services. Please review their privacy policies:
+      </p>
+      <ul class="provider-list">
+        <li>
+          <strong>Groq</strong>
+          <a href="https://groq.com/privacy-policy/" target="_blank" rel="noopener">groq.com/privacy-policy</a>
+        </li>
+        <li>
+          <strong>OpenAI</strong>
+          <a href="https://openai.com/policies/privacy-policy/" target="_blank" rel="noopener">openai.com/policies/privacy-policy</a>
+        </li>
+        <li>
+          <strong>OpenRouter</strong>
+          <a href="https://openrouter.ai/privacy" target="_blank" rel="noopener">openrouter.ai/privacy</a>
+        </li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Permissions</h2>
+      <p>CATalyze requests the following browser permissions, each with a specific purpose:</p>
+      <ul class="permissions-list">
+        <li><code class="perm-label">contextMenus</code> — adds the «Explain with AI» option to the right-click menu when you select text</li>
+        <li><code class="perm-label">sidePanel</code> — displays the CATalyze interface in Chrome's built-in side panel</li>
+        <li><code class="perm-label">storage</code> — saves your settings and API key locally on your device via <code>chrome.storage.local</code></li>
+        <li><code class="perm-label">activeTab</code> — reads the text you have selected on the current page when you invoke the extension</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Your Data, Your Control</h2>
+      <p>
+        You are in full control of everything CATalyze stores. You can remove your API key at any time through the extension settings. Uninstalling CATalyze from Chrome permanently deletes all locally stored data — settings, API key, and preferences — with no residual trace.
+      </p>
+    </section>
+
+    <section>
+      <h2>Changes to This Policy</h2>
+      <p>
+        This privacy policy may be updated occasionally to reflect changes in the extension's functionality. The «Last updated» date at the top of this page will always reflect the most recent revision. Continued use of the extension after changes constitutes acceptance of the updated policy.
+      </p>
+    </section>
+
+    <section>
+      <h2>Contact</h2>
+      <p>
+        If you have any questions or concerns about privacy, please reach out at <a href="mailto:YOUR@EMAIL.COM">YOUR@EMAIL.COM</a>.
+      </p>
+    </section>
+
+    <footer>
+      © 2026 CATalyze. Open source browser extension.
+    </footer>
+
+  </div>
+</body>
+</html>

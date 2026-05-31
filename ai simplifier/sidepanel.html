@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CATalyze</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+
+  <div id="header">
+    <h1 id="title">CATalyze</h1>
+    <div id="header-actions">
+      <button id="history-btn" title="History">◷</button>
+      <button id="toggle-settings">⚙</button>
+      <button id="theme-toggle">☽</button>
+    </div>
+  </div>
+
+  <!-- История запросов -->
+  <div id="history-block">
+    <div id="history-list"></div>
+  </div>
+
+  <!-- Настройки -->
+  <div id="settings-block">
+    <div class="field-group">
+      <label id="label-provider" for="provider-select">Provider</label>
+      <select id="provider-select">
+        <option value="groq">Groq (free)</option>
+        <option value="openai">OpenAI</option>
+        <option value="openrouter">OpenRouter (free)</option>
+        <option value="custom">Custom URL</option>
+      </select>
+      <label id="label-model" for="model-select" class="field-label" style="display:none"></label>
+      <select id="model-select" style="display:none"></select>
+      <input type="text" id="model-custom-input" placeholder="Model name" style="display:none">
+      <input type="text" id="custom-url-input" placeholder="https://...">
+    </div>
+
+    <div class="field-group">
+      <label id="label-language" for="language-select">Response language</label>
+      <select id="language-select">
+        <option value="auto">🌍 Auto (text language)</option>
+        <option value="ru">🇷🇺 Русский</option>
+        <option value="en">🇺🇸 English</option>
+        <option value="de">🇩🇪 Deutsch</option>
+        <option value="fr">🇫🇷 Français</option>
+        <option value="es">🇪🇸 Español</option>
+        <option value="zh">🇨🇳 中文</option>
+        <option value="ja">🇯🇵 日本語</option>
+        <option value="ar">🇸🇦 العربية</option>
+        <option value="pt">🇵🇹 Português</option>
+      </select>
+      <p id="language-saved-hint">✓ Saved</p>
+    </div>
+
+    <div class="field-group">
+      <label id="label-ui-language" for="ui-language-select">Interface language</label>
+      <select id="ui-language-select">
+        <option value="en">🇬🇧 English</option>
+        <option value="ru">🇷🇺 Русский</option>
+        <option value="de">🇩🇪 Deutsch</option>
+        <option value="es">🇪🇸 Español</option>
+        <option value="fr">🇫🇷 Français</option>
+      </select>
+    </div>
+
+    <div id="api-key-section">
+      <label id="label-api-key" for="api-key-input">API Key</label>
+      <input type="password" id="api-key-input" placeholder="Paste your API key">
+      <div id="key-detect-badge"></div>
+      <div id="save-row">
+        <button id="save-key-btn">Save API Key</button>
+        <span id="save-indicator">✓ Saved</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Основной контент -->
+  <div id="main-block">
+    <div id="empty-state">
+      <div id="mascot-wrap">
+        <img src="icons/logo.png" id="cat-mascot" alt="CATalyze mascot">
+      </div>
+      <p id="hint">Select text on any page and choose ✨ Explain with AI</p>
+      <p id="tagline">CATalyze any text into plain language</p>
+    </div>
+
+    <div id="result-wrap">
+      <div id="result-container"></div>
+      <button id="copy-btn" style="display:none" title="Copy"></button>
+    </div>
+
+    <!-- Ввод текста вручную -->
+    <div id="paste-area">
+      <textarea id="paste-input" rows="3" placeholder="Paste or type text here..."></textarea>
+      <div id="paste-footer">
+        <span id="paste-shortcut">Ctrl+Enter</span>
+        <button id="paste-btn">Analyze</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="marked.min.js"></script>
+  <script src="sidepanel.js"></script>
+</body>
+</html>
