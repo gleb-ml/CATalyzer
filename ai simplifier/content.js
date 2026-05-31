@@ -608,8 +608,24 @@
       tracks.find(t => t.kind !== 'asr') ||
       tracks[0];
 
+    // Удаляем параметр `exp`, так как YouTube начал возвращать пустые ответы
+    // если этот параметр присутствует в URL при запросах извне (без активной сессии).
+    let url = track.baseUrl;
+    try {
+      const u = new URL(url);
+      u.searchParams.delete('exp');
+      let sparams = u.searchParams.get('sparams');
+      if (sparams) {
+        sparams = sparams.split(',').filter(x => x !== 'exp').join(',');
+        u.searchParams.set('sparams', sparams);
+      }
+      url = u.toString();
+    } catch (e) {
+      // Игнорируем ошибки парсинга URL, пробуем как есть
+    }
+
     // Забираем XML субтитров и парсим текст
-    const resp = await fetch(track.baseUrl);
+    const resp = await fetch(url);
     const xml  = await resp.text();
 
     // Парсим как HTML (более устойчиво к HTML-сущностям вроде &nbsp;)
