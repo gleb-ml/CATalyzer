@@ -609,7 +609,14 @@
       tracks[0];
 
     // Забираем XML субтитров и парсим текст
-    const resp = await fetch(track.baseUrl);
+    const trackUrl = new URL(track.baseUrl);
+    trackUrl.searchParams.delete('exp');
+    const sparams = trackUrl.searchParams.get('sparams');
+    if (sparams) {
+      const filteredSparams = sparams.split(',').filter(s => s !== 'exp').join(',');
+      trackUrl.searchParams.set('sparams', filteredSparams);
+    }
+    const resp = await fetch(trackUrl.toString());
     const xml  = await resp.text();
 
     // Парсим как HTML (более устойчиво к HTML-сущностям вроде &nbsp;)
