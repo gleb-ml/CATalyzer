@@ -33,7 +33,11 @@ const UI_STRINGS = {
     pastePlaceholder: 'Paste or type text here...',
     analyzeBtn: 'Analyze',
     historyTitle: 'Recent',
-    historyEmpty: 'No history yet'
+    historyEmpty: 'No history yet',
+    ytBtn: '▶ Summarize video',
+    ytNoCaptions: 'No captions available for this video',
+    ytError: 'Could not extract transcript. Try reloading the page.',
+    ytNoData: 'Could not read video data. Try reloading the page.'
   },
   ru: {
     title: 'CATalyze',
@@ -61,7 +65,11 @@ const UI_STRINGS = {
     pastePlaceholder: 'Вставьте или введите текст...',
     analyzeBtn: 'Анализировать',
     historyTitle: 'История',
-    historyEmpty: 'История пуста'
+    historyEmpty: 'История пуста',
+    ytBtn: '▶ Конспект видео',
+    ytNoCaptions: 'У этого видео нет субтитров',
+    ytError: 'Не удалось извлечь субтитры. Попробуйте перезагрузить страницу.',
+    ytNoData: 'Не удалось прочитать данные видео. Попробуйте перезагрузить страницу.'
   },
   de: {
     title: 'CATalyze',
@@ -89,7 +97,11 @@ const UI_STRINGS = {
     pastePlaceholder: 'Text hier einfügen oder tippen...',
     analyzeBtn: 'Analysieren',
     historyTitle: 'Verlauf',
-    historyEmpty: 'Keine Einträge'
+    historyEmpty: 'Keine Einträge',
+    ytBtn: '▶ Video zusammenfassen',
+    ytNoCaptions: 'Keine Untertitel für dieses Video verfügbar',
+    ytError: 'Transkript konnte nicht extrahiert werden. Seite neu laden.',
+    ytNoData: 'Videodaten konnten nicht gelesen werden. Seite neu laden.'
   },
   es: {
     title: 'CATalyze',
@@ -117,7 +129,11 @@ const UI_STRINGS = {
     pastePlaceholder: 'Pega o escribe texto aquí...',
     analyzeBtn: 'Analizar',
     historyTitle: 'Historial',
-    historyEmpty: 'Sin historial'
+    historyEmpty: 'Sin historial',
+    ytBtn: '▶ Resumir video',
+    ytNoCaptions: 'No hay subtítulos disponibles para este video',
+    ytError: 'No se pudo extraer la transcripción. Recarga la página.',
+    ytNoData: 'No se pudieron leer los datos del video. Recarga la página.'
   },
   fr: {
     title: 'CATalyze',
@@ -145,7 +161,11 @@ const UI_STRINGS = {
     pastePlaceholder: 'Collez ou tapez du texte ici...',
     analyzeBtn: 'Analyser',
     historyTitle: 'Historique',
-    historyEmpty: 'Aucun historique'
+    historyEmpty: 'Aucun historique',
+    ytBtn: '▶ Résumer la vidéo',
+    ytNoCaptions: 'Aucun sous-titre disponible pour cette vidéo',
+    ytError: "Impossible d'extraire la transcription. Rechargez la page.",
+    ytNoData: 'Impossible de lire les données vidéo. Rechargez la page.'
   }
 };
 
@@ -212,6 +232,7 @@ function applyUI(lang) {
   if (el('tagline'))          el('tagline').textContent = s.tagline;
   if (el('paste-input'))      el('paste-input').placeholder = s.pastePlaceholder;
   if (el('paste-btn'))        el('paste-btn').textContent = s.analyzeBtn;
+  if (el('yt-summarize-btn')) el('yt-summarize-btn').textContent = s.ytBtn;
 
   const copyBtn = el('copy-btn');
   if (copyBtn && !copyBtn.classList.contains('copied')) copyBtn.textContent = s.copy;
@@ -528,6 +549,98 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // ── YouTube: определение страницы и кнопка конспекта ─────────────────────
+  function checkYouTube() {
+    const section = document.getElementById('yt-section');
+    if (!section) return;
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const isYt = tabs[0] && /^https?:\/\/(www\.)?youtube\.com\/watch/.test(tabs[0].url);
+      section.style.display = isYt ? '' : 'none';
+    });
+  }
+
+  checkYouTube();
+  chrome.tabs.onActivated.addListener(() => checkYouTube());
+  chrome.tabs.onUpdated.addListener((_tabId, info) => {
+    if (info.url || info.status === 'complete') checkYouTube();
+  });
+
+  document.getElementById('yt-summarize-btn').addEventListener('click', () => {
+    if (isAnalyzing) return;
+
+    const resultContainer = document.getElementById('result-container');
+    const s = UI_STRINGS[currentUiLang] || UI_STRINGS['en'];
+
+    // Подготовка UI: скелетон-загрузка, сброс состояния
+    document.getElementById('empty-state').style.display = 'none';
+    resultContainer.style.display = 'block';
+    resultContainer.className = '';
+    resultContainer.innerHTML =
+      '<div class="skeleton-line" style="width:92%"></div>' +
+      '<div class="skeleton-line" style="width:100%"></div>' +
+      '<div class="skeleton-line" style="width:78%"></div>';
+    document.getElementById('copy-btn').style.display = 'none';
+    document.getElementById('settings-block').style.display = 'none';
+    const hb = document.getElementById('history-block');
+    const hBtn = document.getElementById('history-btn');
+    if (hb)   hb.style.display = 'none';
+    if (hBtn) hBtn.classList.remove('active');
+    window.scrollTo({ top: 0 });
+
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (!tabs[0]) {
+        resultContainer.className = 'error-text';
+        resultContainer.textContent = s.ytError;
+        return;
+      }
+
+      chrome.storage.local.get(['apiKey', 'provider', 'customUrl', 'language', 'savedModel'], (data) => {
+        if (!data.apiKey) {
+          resultContainer.className = '';
+          resultContainer.textContent = s.noKey;
+          document.getElementById('settings-block').style.display = 'block';
+          return;
+        }
+
+        // Отправляем запрос на парсинг субтитров в content.js
+        chrome.tabs.sendMessage(tabs[0].id, { type: 'yt_parse_request', lang: data.language }, (response) => {
+          if (chrome.runtime.lastError || !response) {
+            resultContainer.className = 'error-text';
+            resultContainer.textContent = s.ytError;
+            return;
+          }
+          if (!response.ok) {
+            resultContainer.className = 'error-text';
+            resultContainer.textContent =
+              response.error === 'no_captions'    ? s.ytNoCaptions :
+              response.error === 'no_player_data' ? s.ytNoData     :
+                                                    s.ytError;
+            return;
+          }
+
+          // Формируем запрос к LLM с контекстом видео
+          const userContent = response.title
+            ? 'Видео: "' + response.title + '"\n\nТранскрипт:\n' + response.text
+            : response.text;
+
+          const ytPrompt =
+            'Ты эксперт-аналитик. Составь подробный, структурированный конспект следующего видео. ' +
+            'Выдели главные мысли, ключевые аргументы и инсайты. Используй форматирование Markdown.';
+
+          fetchFromAI(
+            userContent,
+            data.apiKey,
+            data.provider || 'groq',
+            data.customUrl,
+            data.language,
+            data.savedModel,
+            ytPrompt
+          );
+        });
+      });
+    });
+  });
+
   initCustomSelects();
 });
 
@@ -767,14 +880,16 @@ function processText(text) {
   });
 }
 
-async function fetchFromAI(text, apiKey, provider, customUrl, language, savedModel) {
+async function fetchFromAI(text, apiKey, provider, customUrl, language, savedModel, customSystemPrompt) {
   const resultContainer = document.getElementById("result-container");
   const s = UI_STRINGS[currentUiLang] || UI_STRINGS['en'];
 
-  // QW6: помечаем начало запроса и блокируем кнопку анализа
+  // QW6: помечаем начало запроса и блокируем кнопки
   isAnalyzing = true;
   const pasteBtn = document.getElementById('paste-btn');
+  const ytBtn    = document.getElementById('yt-summarize-btn');
   if (pasteBtn) pasteBtn.disabled = true;
+  if (ytBtn)    ytBtn.disabled = true;
 
   const endpoint  = provider === "custom" ? customUrl : PROVIDERS[provider].url;
   const modelName = savedModel || PROVIDERS[provider].model;
@@ -795,7 +910,9 @@ async function fetchFromAI(text, apiKey, provider, customUrl, language, savedMod
         messages: [
           {
             role: "system",
-            content: `${langRule}\n\nТы эксперт по объяснению сложных текстов. Твоя задача — сделать текст понятным для умного человека без специальных знаний в этой области.\nПРАВИЛА: Сохраняй все важные факты, цифры и нюансы. Не упрощай смысл, только язык. Не добавляй информацию которой нет в тексте. Не будь снисходительным — читатель умный, просто не знаком с темой.\nСТРУКТУРА ОТВЕТА: Начни с главного за 2-3 предложения. Затем список ключевых пунктов. В конце — что конкретно это значит для читателя, только если применимо.`
+            content: customSystemPrompt
+              ? `${langRule}\n\n${customSystemPrompt}`
+              : `${langRule}\n\nТы эксперт по объяснению сложных текстов. Твоя задача — сделать текст понятным для умного человека без специальных знаний в этой области.\nПРАВИЛА: Сохраняй все важные факты, цифры и нюансы. Не упрощай смысл, только язык. Не добавляй информацию которой нет в тексте. Не будь снисходительным — читатель умный, просто не знаком с темой.\nСТРУКТУРА ОТВЕТА: Начни с главного за 2-3 предложения. Затем список ключевых пунктов. В конце — что конкретно это значит для читателя, только если применимо.`
           },
           {
             role: "user",
@@ -833,5 +950,6 @@ async function fetchFromAI(text, apiKey, provider, customUrl, language, savedMod
     // QW6: снимаем блокировку после завершения запроса (успех или ошибка)
     isAnalyzing = false;
     if (pasteBtn) pasteBtn.disabled = false;
+    if (ytBtn)    ytBtn.disabled = false;
   }
 }

@@ -524,4 +524,105 @@
     if (e.key === 'Escape') { hideFab(); hideCard(); }
   });
 
+  // ── YouTube Transcript Parser ──────────────────────────────────────────────
+  // Слушаем запрос из sidepanel на извлечение субтитров.
+  // Работает на любой странице (проверяем URL внутри), чтобы sendMessage не
+  // падал с «no listener» на других сайтах — просто отвечаем not_youtube.
+
+  chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+    if (msg.type !== 'yt_parse_request') return;
+
+    if (!/^https?:\/\/(www\.)?youtube\.com\/watch/.test(location.href)) {
+      sendResponse({ ok: false, error: 'not_youtube' });
+      return;
+    }
+
+    parseYouTubeTranscript(msg.lang)
+      .then(result => sendResponse({ ok: true, text: result.text, title: result.title }))
+      .catch(err  => sendResponse({ ok: false, error: err.message }));
+    return true;   // держим канал открытым для async-ответа
+  });
+
+  // ── Извлечение JSON-объекта из строки по имени переменной ─────────────────
+  // Корректно обрабатывает фигурные скобки внутри строк.
+  function extractJSON(source, varName) {
+    const idx = source.indexOf(varName);
+    if (idx === -1) return null;
+    const start = source.indexOf('{', idx + varName.length);
+    if (start === -1) return null;
+
+    let depth = 0, inStr = false, esc = false;
+    for (let i = start; i < source.length; i++) {
+      const c = source[i];
+      if (esc)                   { esc = false; continue; }
+      if (c === '\\' && inStr)   { esc = true;  continue; }
+      if (c === '"')             { inStr = !inStr; continue; }
+      if (inStr) continue;
+      if (c === '{') depth++;
+      else if (c === '}') {
+        depth--;
+        if (depth === 0) {
+          try   { return JSON.parse(source.substring(start, i + 1)); }
+          catch { return null; }
+        }
+      }
+    }
+    return null;
+  }
+
+  // ── Основная логика парсинга ─────────────────────────────────────────────
+  async function parseYouTubeTranscript(prefLang) {
+    let playerResponse = null;
+
+    // Фаза 1: ищем ytInitialPlayerResponse в <script>-тегах DOM
+    // (работает при первичной загрузке страницы)
+    const scripts = document.querySelectorAll('script');
+    for (const s of scripts) {
+      const src = s.textContent;
+      if (!src.includes('ytInitialPlayerResponse')) continue;
+      playerResponse = extractJSON(src, 'ytInitialPlayerResponse');
+      if (playerResponse) break;
+    }
+
+    // Фаза 2 (SPA-fallback): fetch текущего URL — браузер получает свежий HTML
+    // с данными для текущего видео, даже если пользователь перешёл по навигации
+    // внутри YouTube без полной перезагрузки страницы.
+    if (!playerResponse) {
+      try {
+        const resp = await fetch(location.href);
+        const html = await resp.text();
+        playerResponse = extractJSON(html, 'ytInitialPlayerResponse');
+      } catch { /* сеть недоступна — пойдёт ошибка ниже */ }
+    }
+
+    if (!playerResponse) throw new Error('no_player_data');
+
+    const tracks = playerResponse?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
+    if (!tracks?.length) throw new Error('no_captions');
+
+    // Выбор трека: язык пользователя > ручные субтитры > первый доступный
+    const track =
+      (prefLang && tracks.find(t => t.languageCode === prefLang && t.kind !== 'asr')) ||
+      (prefLang && tracks.find(t => t.languageCode === prefLang)) ||
+      tracks.find(t => t.kind !== 'asr') ||
+      tracks[0];
+
+    // Забираем XML субтитров и парсим текст
+    const resp = await fetch(track.baseUrl);
+    const xml  = await resp.text();
+
+    // Парсим как HTML (более устойчиво к HTML-сущностям вроде &nbsp;)
+    const doc   = new DOMParser().parseFromString(xml, 'text/html');
+    const nodes = doc.querySelectorAll('text');
+    const text  = Array.from(nodes)
+      .map(n => n.textContent.replace(/\s+/g, ' ').trim())
+      .filter(Boolean)
+      .join(' ');
+
+    if (!text) throw new Error('empty_transcript');
+
+    const title = playerResponse?.videoDetails?.title || '';
+    return { text, title };
+  }
+
 })();

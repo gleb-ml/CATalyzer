@@ -3,7 +3,7 @@
   "name": "CATalyze",
   "description": "CATalyze any text into plain language",
   "version": "1.0",
-  "permissions": ["contextMenus", "sidePanel", "storage", "activeTab"],
+  "permissions": ["contextMenus", "sidePanel", "storage", "activeTab", "tabs"],
   "background": {
     "service_worker": "background.js"
   },

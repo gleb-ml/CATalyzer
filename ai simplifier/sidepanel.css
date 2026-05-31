@@ -496,6 +496,43 @@ body {
 }
 
 /* ═══════════════════════════════════════
+   YOUTUBE TRANSCRIPT BUTTON
+   ═══════════════════════════════════════ */
+
+#yt-section {
+  margin-top: 12px;
+}
+
+#yt-summarize-btn {
+  width: 100%;
+  height: 40px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.1s;
+  letter-spacing: -0.1px;
+}
+
+#yt-summarize-btn:hover {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+}
+
+#yt-summarize-btn:active { transform: scale(0.97); }
+
+#yt-summarize-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+  transform: none;
+}
+
+/* ═══════════════════════════════════════
    SCROLLBAR
    ═══════════════════════════════════════ */
 
